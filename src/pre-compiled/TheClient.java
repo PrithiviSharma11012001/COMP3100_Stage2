@@ -119,11 +119,15 @@ public class TheClient {
 					
 					servers_array_list.add(new Server(Integer.parseInt(server_things[0]), server_things[1], Integer.parseInt(server_things[2]),
 					Integer.parseInt(server_things[3]), Float.parseFloat(server_things[4]),
-					Integer.parseInt(server_things[5]), Integer.parseInt(server_things[6]), Integer.parseInt(server_things[7])));
+					Integer.parseInt(server_things[5]), Integer.parseInt(server_things[6]), Integer.parseInt(server_things[7]), Integer.parseInt(server_things[8])));
 
 					write("OK");
 					inputString = read();
 				}
+				new_alg processed_alg = new new_alg(servers, servers_array_list);
+
+				Server processed_alg_ans = processed_alg.processed_alg(dissected_job);
+				write("SCHD" + dissected_job.job_id + " " + processed_alg_ans.type + " " + processed_alg_ans.id);
 
 
 			}
@@ -152,7 +156,8 @@ public class TheClient {
 				int c = Integer.parseInt(server.getAttribute("coreCount"));
 				int rm = Integer.parseInt(server.getAttribute("memory"));
 				int rd = Integer.parseInt(server.getAttribute("disk"));
-				Server temp = new Server(i, t, sl, tfb, hr, c, rm, rd );
+				int st = Integer.parseInt(server.getAttribute("state"));
+				Server temp = new Server(i, t, sl, tfb, hr, c, rm, rd, st );
 				servers[i] = temp;
 			}
 			largestServerIndex = findLargestServer();
