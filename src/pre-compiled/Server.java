@@ -1,16 +1,25 @@
 
-// Simple class that contains the information wee need to schedule jobs after
-// type and the number of cores are the two important attributes
 
 public class Server {
 
 	public int id;
 	public String type;
-	public int cores;
+	public int server_limit;
+	public int time_for_bootup; 
+	public float hourly_rate;
+	public int core_count;
+	public int resource_memory; 
+	public int resource_disk;
 
-	Server(int id, String t, int c) {
+
+	Server(int id, String t, int sl, int tfb, float hr, int c, int rm, int rd) {
 		this.id = id;
 		this.type = t;
-		this.cores = c;
+		this.server_limit = sl;
+		this.time_for_bootup = tfb;
+		this.hourly_rate = hr;
+		this.core_count = c;
+		this.resource_memory = rm; 
+		this.resource_disk = rd;
 	}
 }

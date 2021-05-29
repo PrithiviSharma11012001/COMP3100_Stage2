@@ -113,7 +113,17 @@ public class TheClient {
 
 				
 				servers_array_list = new ArrayList<Server>();
+				while(inputString!= "."){
 
+					String[] server_things = inputString.split("\\s+");
+					
+					servers_array_list.add(new Server(Integer.parseInt(server_things[0]), server_things[1], Integer.parseInt(server_things[2]),
+					Integer.parseInt(server_things[3]), Float.parseFloat(server_things[4]),
+					Integer.parseInt(server_things[5]), Integer.parseInt(server_things[6]), Integer.parseInt(server_things[7])));
+
+					write("OK");
+					inputString = read();
+				}
 
 
 			}
@@ -136,8 +146,13 @@ public class TheClient {
 			for (int i = 0; i < serverNodeList.getLength(); i++) {
 				Element server = (Element) serverNodeList.item(i);
 				String t = server.getAttribute("type");
+				int sl = Integer.parseInt(server.getAttribute("limit"));
+				int tfb = Integer.parseInt(server.getAttribute("bootupTime"));
+				float hr = Float.parseFloat(server.getAttribute("rate"));
 				int c = Integer.parseInt(server.getAttribute("coreCount"));
-				Server temp = new Server(i, t, c);
+				int rm = Integer.parseInt(server.getAttribute("memory"));
+				int rd = Integer.parseInt(server.getAttribute("disk"));
+				Server temp = new Server(i, t, sl, tfb, hr, c, rm, rd );
 				servers[i] = temp;
 			}
 			largestServerIndex = findLargestServer();
@@ -152,7 +167,7 @@ public class TheClient {
 	public int findLargestServer() {
 		int largestServer = servers[0].id;
 		for (int i = 0; i < servers.length; i++) {
-			if (servers[i].cores > servers[largestServer].cores) {
+			if (servers[i].core_count > servers[largestServer].core_count) {
 				largestServer = servers[i].id;
 			}
 		}
