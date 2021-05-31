@@ -115,8 +115,10 @@ public class TheClient {
 				servers_array_list = new ArrayList<Server>();
 				while(inputString!= "."){
 
+					//Information keeps being read until the end of the server.
 					String[] server_things = inputString.split("\\s+");
 					
+					//The server information is added to the arraylist to perform processed_alg
 					servers_array_list.add(new Server(Integer.parseInt(server_things[0]), server_things[1], Integer.parseInt(server_things[2]),
 					Integer.parseInt(server_things[3]), Float.parseFloat(server_things[4]),
 					Integer.parseInt(server_things[5]), Integer.parseInt(server_things[6]), Integer.parseInt(server_things[7]), Integer.parseInt(server_things[8])));
@@ -125,6 +127,9 @@ public class TheClient {
 					inputString = read();
 				}
 				new_alg processed_alg = new new_alg(servers, servers_array_list);
+
+
+				//The job is scheduled using the processed_alg
 
 				Server processed_alg_ans = processed_alg.processed_alg(dissected_job);
 				write("SCHD" + dissected_job.job_id + " " + processed_alg_ans.type + " " + processed_alg_ans.id);

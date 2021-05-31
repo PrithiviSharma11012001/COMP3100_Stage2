@@ -11,7 +11,7 @@ public class given_job{
 
 
 
-    
+    //job class constructor.
     given_job(int sub_time, int j_id,int rte, int core, int mem, int disk){
 
         this.submission_time = sub_time; 
