@@ -62,8 +62,8 @@ public Server processed_alg(given_job dissected_job){
 
                 }
                 
-
-            }else{
+            //area where the start time of the job within the server is found.
+            }else if(server.type != server1.type && server1.core_count >= dissected_job.core && server1.resource_disk >= dissected_job.disk && server1.resource_memory >= dissected_job.mem && server1.state != 4){
 
                 write("LSTJ" + " " + server1.id + " " + server1.type);
                 newstring = read();
@@ -73,29 +73,26 @@ public Server processed_alg(given_job dissected_job){
 
             } 
             
+            
 
         }
-    /*
+        
         for(Server server2: servers){
-    
-        
-        
         if(server2.core_count >= dissected_job.core && server2.resource_disk >= dissected_job.disk && server2.resource_memory >= dissected_job.disk && server2.state != 4){
             temp = server2;
             temp.id = 0;
             return temp;
         }
-    */    
+     
 
     }
-
-
     
-    return null;
-
+}
+return null;
 
 
 }
+
 
 //selection sort used to sort the server array in ascending order.
 
