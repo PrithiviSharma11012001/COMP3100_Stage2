@@ -3,202 +3,179 @@ import java.io.*;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.ArrayList;
+// Use ./test-results "java TheClient" -o ru -n -c ../../configs/other/
 
 public class TheClient {
 
-	// Create global variables for the socket, and the input and output, which we will need to write and read messages
+	// Create global variables for the socket, and the input and output, which we
+	// will need to write and read messages
 	// between server and client
 	private Socket socket = null;
-	private BufferedReader in = null;
+	private BufferedReader input = null;
 	private DataOutputStream out = null;
 	private Server[] servers = new Server[1];
-	private ArrayList<Server> servers_array_list = new ArrayList<Server>(); 
-	private int largestServerIndex = 0;
 	private String inputString;
-	private Boolean completed = false;
+	private Boolean finished = false;
+	private String[] new_arr;
 
-	// Constructor for our client class: we connect the socket to the address 127.0.0.1 and to the port 50000, as
-	// provided by the server, and we initialize the input variable (in) and the output (out)
-	// in will be used for reading the messages sent by the server, while out will be used for writing messages 
-	// to the server
+
 	public TheClient() {
 		try {
 			socket = new Socket("localhost", 50000);
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			out = new DataOutputStream(socket.getOutputStream()); 
+			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out = new DataOutputStream(socket.getOutputStream());
 		} catch (UnknownHostException i) {
 			System.out.println("Error: " + i);
 		} catch (IOException i) {
 			System.out.println("Error: " + i);
 		}
 	}
-    
-	// We instantiate one client object in main, and we need some method that will start communication with the server,
-	// which I called start().
+
+	
 	public static void main(String args[]) {
 		TheClient client = new TheClient();
-		client.start();
+		client.run();
 	}
 
-	public void start() {
+	public void run() {
+	
 		write("HELO");
-        //System.out.println("Sent HELLO");
 		inputString = read();
-        //System.out.println("Received " + inputString);
+		
 		write("AUTH " + System.getProperty("user.name"));
-        //System.out.println("Sent Auth " + System.getProperty("user.name"));
+		
 		inputString = read();
-        //System.out.println("Received " + inputString);
 		File file = new File("ds-system.xml");
 		readFile(file);
+		
 		write("REDY");
-        //System.out.println("Sent REDY");
 		inputString = read();
-        //System.out.println("Received " + inputString);
-        allToLargest();
+		//call to first algorithm.
+		alt_alg();
+		
 		quit();
 	}
 
-	// allToLargest deals with the communication between server and client after the client sent the first REDY, and
-	// the server sent the first reply. If the reply is NONE, the method will just quit and the connection will be closed,
-	// while, if the client receives other commands, the algorithm will run as expected. It follows the workflow shown in
-	// the ds-server pdf file provided, so the algorithm loops until it receives a NONE as a reply from the server. 
-	// In case it does not receive a JOBN reply, the client will write REDY, so that the command can be skipped.
-	// When the server sends a JOBN message, the message is split and data about the job is gathered.
-	// The server type needed in the SCHD command is found thanks to the readFile method and the findLargestServer method.
-	public void allToLargest (){
-        if (inputString.equals("NONE")) {
+	//First algorithm
+	public void alt_alg() {
+		
+		if (inputString.equals("NONE")) {
 			quit();
 		} else {
-			while (!completed) {
-				if (inputString.equals("OK")) {
+			
+			while (!finished) {
+				
+				if (inputString.equals("OK") || inputString.equals(".") || inputString.equals(".OK")) {
 					write("REDY");
-                    //System.out.println("Sent REDY");
 					inputString = read();
-                    //System.out.println("Received " + inputString);
 				}
-                String [] splitMessage = inputString.split("\\s+");
-                String firstWord = splitMessage[0];
-                while (firstWord.equals("JCPL") || firstWord.equals("RESF") || firstWord.equals("RESR")) {
-                    write("REDY");
-                    //System.out.println("Sent REDY");
+				String[] splitMessage = inputString.split("\\s+");
+				String firstWord = splitMessage[0];
+				while (firstWord.equals("JCPL") || firstWord.equals("RESF") || firstWord.equals("RESR")) {
+					write("REDY");
 					inputString = read();
-                    //System.out.println("Received " + inputString);
 
-                    splitMessage = inputString.split("\\s+");
-                    firstWord = splitMessage[0];
-                }
+					splitMessage = inputString.split("\\s+");
+					firstWord = splitMessage[0];
+				}
+				
 				if (firstWord.equals("NONE")) {
-					completed = true;
+					finished = true;
 					break;
 				}
 
-				String[] new_job = inputString.split("\\s+"); 
-				//In the line below, the given job is broken into smaller areas of information to create an object of given_job
-				given_job dissected_job = new given_job(Integer.parseInt(new_job[1]), Integer.parseInt(new_job[2]),
-				Integer.parseInt(new_job[3]), Integer.parseInt(new_job[4]), Integer.parseInt(new_job[5]),
-				Integer.parseInt(new_job[6]));
-
-				//Every piece of information regarding the job is obtained.
-				write("GETS All");
-				//String num = jobSections[2];
-				//String scheduleMessage = "SCHD " + num + " " + servers[largestServerIndex].type + " " + "0";
-				//write(scheduleMessage);
-                //System.out.println("JOB SENT: SCHD " + count + " " + servers[largestServer].type + " " + "0");
-                inputString = read();
-				write("OK");
-                
-				inputString = read(); 
-
-				
-				servers_array_list = new ArrayList<Server>();
-				while(inputString!= "."){
-
-					//Information keeps being read until the end of the server.
-					String[] server_things = inputString.split("\\s+");
-					
-					//The server information is added to the arraylist to perform processed_alg
-					servers_array_list.add(new Server(Integer.parseInt(server_things[0]), server_things[1], Integer.parseInt(server_things[2]),
-					Integer.parseInt(server_things[3]), Float.parseFloat(server_things[4]),
-					Integer.parseInt(server_things[5]), Integer.parseInt(server_things[6]), Integer.parseInt(server_things[7]), Integer.parseInt(server_things[8])));
-
-					write("OK");
-					inputString = read();
-				}
-				new_alg processed_alg = new new_alg(servers, servers_array_list);
-
-
-				//The job is scheduled using the processed_alg
-
-				Server processed_alg_ans = processed_alg.processed_alg(dissected_job);
-				write("SCHD" + dissected_job.job_id + " " + processed_alg_ans.type + " " + processed_alg_ans.id);
-
-
+				String[] jobSections = inputString.split("\\s+");
+				serverfinal(jobSections);
+				inputString = read();
+				String num = jobSections[2];
+				String scheduleMessage = "SCHD " + num + " " + new_arr[0] + " " + new_arr[1];
+				write(scheduleMessage);
+				inputString = read();
 			}
 		}
-    }
+	}
+	
+	
+	public void serverfinal(String[] job_info){
+				write("GETS Avail " + job_info[4] + " " + job_info[5] + " " + job_info[6]);
+				String jobString = read();
+				String[] check_info = jobString.split("\\s+");
+				int inst = Integer.parseInt(check_info[1]);
+				write("OK");
+				jobString = read();
+				if (jobString.equals(".")) {
 
-	// This method parses through the XML file found at the path stated in the start() method. 
-	// It iterates through the file looks for attributes found in the XML file.
-	// It then stores those values in an array
+					write("GETS Capable " + job_info[4] + " " + job_info[5] + " " + job_info[6]);
+					jobString = read();
+					check_info = jobString.split("\\s+");
+					inst = Integer.parseInt(check_info[1]);
+
+					write("OK");
+					jobString = read();
+					String[] check_points = jobString.split("\\r?\\n");
+
+					new_arr = check_points[0].split("\\s+");
+					servercheck(jobString, inst, check_points);
+					
+				} else {
+					String[] check_points1 = jobString.split("\\r?\\n");
+					new_arr = check_points1[0].split("\\s+");
+					servercheck(jobString, inst, check_points1);
+				}
+	}
+
+	//second alg comparing disk, memory and corecount
+	public void servercheck(String ds, int inst, String[] l){
+		for (int num = 0; num < inst; num++){
+
+			l = ds.split("\\r?\\n");
+			String[] sec = l[0].split("\\s+");
+			System.out.println(sec);
+			if (Integer.parseInt(sec[4]) > Integer.parseInt(new_arr[4]) && Integer.parseInt(sec[5]) > Integer.parseInt(new_arr[5]) && Integer.parseInt(sec[6]) > Integer.parseInt(new_arr[6]) ){
+				new_arr = sec;
+			}
+			
+			if (inst - 1 == num){
+				write("OK");
+				break;
+			}
+			else {
+				ds = read();
+			}
+		}
+	}
+
+	// This method parses through the XML file in t
 	public void readFile(File file) {
 		try {
-			
+
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document systemDocument = builder.parse(file);
 			systemDocument.getDocumentElement().normalize();
-			
+
 			NodeList serverNodeList = systemDocument.getElementsByTagName("server");
 			servers = new Server[serverNodeList.getLength()];
 			for (int i = 0; i < serverNodeList.getLength(); i++) {
 				Element server = (Element) serverNodeList.item(i);
 				String t = server.getAttribute("type");
-				int sl = Integer.parseInt(server.getAttribute("limit"));
-				int tfb = Integer.parseInt(server.getAttribute("bootupTime"));
-				float hr = Float.parseFloat(server.getAttribute("rate"));
 				int c = Integer.parseInt(server.getAttribute("coreCount"));
-				int rm = Integer.parseInt(server.getAttribute("memory"));
-				int rd = Integer.parseInt(server.getAttribute("disk"));
-				int st = Integer.parseInt(server.getAttribute("state"));
-				Server temp = new Server(i, t, sl, tfb, hr, c, rm, rd, st );
+				int m = Integer.parseInt(server.getAttribute("memory"));
+				int d = Integer.parseInt(server.getAttribute("disk"));
+
+				Server temp = new Server(i, t, m,c,d);
 				servers[i] = temp;
 			}
-			largestServerIndex = findLargestServer();
 		} catch (Exception i) {
 			i.printStackTrace();
 		}
 
 	}
 
-	// Returns the index of the largest server(CPU cores) in the array 
-	// created by the readFile() method
-	public int findLargestServer() {
-		int largestServer = servers[0].id;
-		for (int i = 0; i < servers.length; i++) {
-			if (servers[i].core_count > servers[largestServer].core_count) {
-				largestServer = servers[i].id;
-			}
-		}
-		return largestServer;
-	}
-
-	public void write(String text) {
-		try {
-			out.write((text + "\n").getBytes());
-			// System.out.print("SENT: " + text);
-			out.flush();
-		} catch (IOException i) {
-			System.out.println("ERR: " + i);
-		}
-	}
-
 	public String read() {
 		String text = "";
 		try {
-            text = in.readLine();
-			// System.out.print("RCVD: " + text);
+            text = input.readLine();
 			inputString = text;
 		} catch (IOException i) {
 			System.out.println("ERR: " + i);
@@ -206,14 +183,25 @@ public class TheClient {
 		return text;
 	}
 
+
+	public void write(String text) {
+		try {
+			out.write((text + "\n").getBytes());
+			out.flush();
+		} catch (IOException i) {
+			System.out.println("ERR: " + i);
+		}
+	}
+
+	
+
+
 	public void quit() {
 		try {
 			write("QUIT");
-            //System.out.println("Sent QUIT");
 			inputString = read();
-            //System.out.println("Received" + inputString);
 			if (inputString.equals("QUIT")) {
-				in.close();
+				input.close();
 				out.close();
 				socket.close();
 			}
